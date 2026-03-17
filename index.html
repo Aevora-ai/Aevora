@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aevora | India's AI Talent Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        :root { --primary: #6366f1; --dark: #070a13; --accent: #10b981; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--dark); color: #f8fafc; overflow: hidden; height: 100vh; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .tab-content { display: none; height: 100%; overflow-y: auto; padding-bottom: 100px; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .sidebar { width: 75px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 100; }
+        .sidebar:hover { width: 240px; }
+        .sidebar .label { opacity: 0; transition: 0.2s; white-space: nowrap; pointer-events: none; }
+        .sidebar:hover .label { opacity: 1; pointer-events: auto; }
+        .utility-drawer { width: 350px; transform: translateX(100%); transition: 0.4s ease; z-index: 200; }
+        .utility-drawer.open { transform: translateX(0); }
+        .star-active { color: #f59e0b; }
+    </style>
+</head>
+<body class="flex">
+
+    <div id="landing-page" class="fixed inset-0 z-[600] bg-[#070a13] overflow-y-auto">
+        <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center gap-2 font-bold text-xl tracking-tighter">
+                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center"><i class="fas fa-brain text-white text-xs"></i></div>
+                AEVORA
+            </div>
+            <button onclick="login()" class="bg-white text-black px-6 py-2 rounded-full font-bold text-sm">Sign In</button>
+        </nav>
+        
+        <header class="py-20 text-center px-6">
+            <h1 class="text-5xl md:text-7xl font-black mb-6 tracking-tight">Hire AI Talent. <br><span class="text-indigo-500">Secure Payments.</span></h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-lg mb-10">The smart marketplace for Indian developers and creators.</p>
+            <button onclick="login()" class="bg-indigo-600 px-10 py-5 rounded-2xl font-bold hover:scale-105 transition-all text-lg shadow-2xl shadow-indigo-600/20">Connect with Google</button>
+        </header>
+
+        <section class="py-20 max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 border-t border-white/5">
+            <div class="text-center"><i class="fas fa-bolt text-3xl text-indigo-500 mb-4"></i><h3 class="font-bold mb-2">Fast Hiring</h3><p class="text-slate-500 text-sm">Post a job and get matches in minutes.</p></div>
+            <div class="text-center"><i class="fas fa-lock text-3xl text-indigo-500 mb-4"></i><h3 class="font-bold mb-2">Escrow Protected</h3><p class="text-slate-500 text-sm">Funds stay safe until the work is done.</p></div>
+            <div class="text-center"><i class="fas fa-rupee-sign text-3xl text-indigo-500 mb-4"></i><h3 class="font-bold mb-2">Zero Hidden Fees</h3><p class="text-slate-500 text-sm">Transparent pricing for every project.</p></div>
+        </section>
+    </div>
+
+    <aside id="main-sidebar" class="sidebar h-screen glass border-r border-white/5 flex flex-col items-center py-8 hidden">
+        <nav class="flex flex-col gap-4 w-full px-3">
+            <button onclick="switchTab('home')" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-all">
+                <i class="fas fa-th-large text-lg"></i> <span class="label font-bold text-sm">Marketplace</span>
+            </button>
+            <button onclick="switchTab('messages')" class="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 text-slate-400 hover:text-white transition-all">
+                <i class="fas fa-comment-dots text-lg"></i> <span class="label font-bold text-sm">Workspaces</span>
+            </button>
+            <button id="admin-nav" onclick="switchTab('admin')" class="hidden flex items-center gap-4 p-4 rounded-2xl bg-red-500/10 text-red-400 transition-all">
+                <i class="fas fa-shield-lock text-lg"></i> <span class="label font-bold text-sm">Admin Control</span>
+            </button>
+        </nav>
+        <div class="mt-auto w-full px-3">
+            <button onclick="toggleUtility()" class="w-full flex items-center gap-4 p-4 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <i class="fas fa-wallet text-lg"></i> <span class="label font-bold text-sm">My Wallet</span>
+            </button>
+        </div>
+    </aside>
+
+    <main id="main-content" class="flex-grow relative h-screen overflow-hidden hidden">
+        
+        <section id="tab-home" class="tab-content active p-8 lg:p-12">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex justify-between items-center mb-12">
+                    <div>
+                        <h1 id="user-welcome" class="text-4xl font-black">Aevora Hub</h1>
+                        <p class="text-slate-500 mt-2">Balance: <span class="text-accent font-bold" id="user-bal">₹0.00</span></p>
+                    </div>
+                    <button onclick="openModal('job-modal')" class="bg-indigo-600 px-8 py-4 rounded-2xl font-bold text-sm">Post New Job</button>
+                </div>
+                <div id="jobs-feed" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </section>
+
+        <section id="tab-messages" class="tab-content p-8">
+            <div class="max-w-6xl mx-auto h-[80vh] flex glass rounded-[2.5rem] overflow-hidden">
+                <div id="chat-threads" class="w-1/3 border-r border-white/5 overflow-y-auto bg-black/10"></div>
+                <div class="flex-grow flex flex-col">
+                    <div id="active-chat-header" class="p-6 border-b border-white/5 flex justify-between items-center font-bold">Select a Chat</div>
+                    <div id="message-container" class="flex-grow p-8 overflow-y-auto space-y-4 no-scrollbar"></div>
+                    <div id="chat-footer" class="p-6 border-t border-white/5 flex gap-3 hidden">
+                        <input id="msg-input" type="text" placeholder="Type message..." class="flex-grow bg-slate-900 border border-white/10 rounded-xl px-4 outline-none">
+                        <button onclick="sendMsg()" class="w-12 h-12 bg-indigo-600 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-admin" class="tab-content p-12">
+            <h2 class="text-3xl font-bold mb-8 text-red-400">Master Control</h2>
+            <div id="admin-jobs" class="space-y-4 max-w-4xl"></div>
+        </section>
+    </main>
+
+    <aside id="utility-drawer" class="utility-drawer fixed right-0 top-0 h-screen glass border-l border-white/10 p-8">
+        <div class="flex justify-between mb-8">
+            <h4 class="font-bold text-indigo-400">Wallet & Escrow</h4>
+            <button onclick="toggleUtility()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="escrow-list" class="space-y-4"></div>
+    </aside>
+
+    <div id="job-modal" class="fixed inset-0 z-[700] hidden flex items-center justify-center bg-black/90 p-6">
+        <div class="glass w-full max-w-lg p-10 rounded-[2.5rem]">
+            <h2 class="text-2xl font-bold mb-6">New Job Post</h2>
+            <div class="space-y-4">
+                <input id="j-title" placeholder="Job Title" class="w-full bg-slate-900 p-4 rounded-xl border border-white/10">
+                <textarea id="j-desc" placeholder="Job Details" class="w-full bg-slate-900 p-4 rounded-xl border border-white/10 h-32"></textarea>
+                <input id="j-budget" placeholder="Budget (₹)" type="number" class="w-full bg-slate-900 p-4 rounded-xl border border-white/10">
+                <button onclick="publishJob()" class="w-full bg-indigo-600 py-4 rounded-xl font-bold">Launch Project</button>
+                <button onclick="closeModal('job-modal')" class="w-full text-slate-500">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, query, onSnapshot, serverTimestamp, updateDoc, orderBy, deleteDoc, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 🔥 PASTE YOUR FIREBASE CONFIG HERE
+        const firebaseConfig = {
+          apiKey: "AIzaSyAHs-RDSsvAlw8QEllofvUsllCRqFkR_tM",
+          authDomain: "aevora-2b110.firebaseapp.com",
+          projectId: "aevora-2b110",
+          storageBucket: "aevora-2b110.firebasestorage.app",
+          messagingSenderId: "600000297954",
+          appId: "1:600000297954:web:51875db0546d4f3e6557bb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+        const appId = "aevora-v1";
+        
+        // PASTE YOUR UID HERE TO BECOME ADMIN
+        const ADMIN_UID = "PASTE_YOUR_UID_HERE"; 
+
+        let userState = null;
+        let activeChatId = null;
+
+        window.login = () => signInWithPopup(auth, provider);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userRef = doc(db, 'artifacts', appId, 'users', user.uid);
+                const snap = await getDoc(userRef);
+                if (!snap.exists()) {
+                    userState = { uid: user.uid, name: user.displayName, balance: 10000, email: user.email };
+                    await setDoc(userRef, userState);
+                } else { userState = snap.data(); }
+                
+                document.getElementById('landing-page').classList.add('hidden');
+                document.getElementById('main-sidebar').classList.remove('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                
+                if(user.uid === ADMIN_UID) document.getElementById('admin-nav').classList.remove('hidden');
+                initData();
+            }
+        });
+
+        function initData() {
+            onSnapshot(doc(db, 'artifacts', appId, 'users', userState.uid), (d) => {
+                if(d.exists()) {
+                    userState.balance = d.data().balance;
+                    document.getElementById('user-bal').innerText = `₹${userState.balance.toFixed(2)}`;
+                }
+            });
+
+            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'jobs'), orderBy('ts', 'desc')), (snap) => {
+                const feed = document.getElementById('jobs-feed');
+                const adminFeed = document.getElementById('admin-jobs');
+                feed.innerHTML = adminFeed.innerHTML = '';
+                snap.forEach(d => {
+                    const j = d.data();
+                    feed.innerHTML += `
+                        <div class="glass p-8 rounded-[2.5rem]">
+                            <span class="text-[10px] font-bold text-indigo-400">₹${j.budget}</span>
+                            <h4 class="text-xl font-bold mt-2 mb-4">${j.title}</h4>
+                            <button onclick="window.hire('${d.id}', '${j.title}', ${j.budget}, '${j.authorId}')" class="w-full py-4 bg-indigo-600 rounded-2xl text-[10px] font-bold uppercase">Apply Now</button>
+                        </div>`;
+                    adminFeed.innerHTML += `<div class="p-4 bg-white/5 rounded-xl flex justify-between"><span>${j.title}</span> <button onclick="window.adminDelete('${d.id}')" class="text-red-500">Delete</button></div>`;
+                });
+            });
+
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'chats'), (snap) => {
+                const list = document.getElementById('chat-threads');
+                list.innerHTML = '';
+                snap.forEach(d => {
+                    const c = d.data();
+                    if(c.participants.includes(userState.uid)) {
+                        list.innerHTML += `<div onclick="window.loadChat('${d.id}')" class="p-6 border-b border-white/5 cursor-pointer hover:bg-white/5">
+                            <p class="text-sm font-bold">${c.jobTitle}</p>
+                            <p class="text-[10px] text-slate-500 mt-1">${c.lastMsg || 'Open Workspace'}</p>
+                        </div>`;
+                    }
+                });
+            });
+        }
+
+        window.publishJob = async () => {
+            const title = document.getElementById('j-title').value;
+            const budget = parseFloat(document.getElementById('j-budget').value);
+            if(!title || isNaN(budget)) return alert("Fill all fields");
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'jobs'), {
+                title, description: document.getElementById('j-desc').value, budget, authorId: userState.uid, ts: serverTimestamp()
+            });
+            closeModal('job-modal');
+        };
+
+        window.hire = async (jobId, title, budget, clientId) => {
+            const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'chats'), {
+                jobId, jobTitle: title, amount: budget, clientId, freelancerId: userState.uid, participants: [userState.uid, clientId], ts: serverTimestamp()
+            });
+            switchTab('messages');
+            loadChat(ref.id);
+        };
+
+        window.loadChat = (id) => {
+            activeChatId = id;
+            document.getElementById('chat-footer').classList.remove('hidden');
+            const h = document.getElementById('active-chat-header');
+            
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'chats', id), (snap) => {
+                const chat = snap.data();
+                h.innerHTML = `<span>${chat.jobTitle}</span>`;
+                if(chat.clientId === userState.uid && !chat.escrowId) {
+                    h.innerHTML += `<button onclick="window.fund('${id}')" class="bg-accent text-black px-4 py-2 rounded-lg text-xs font-bold">Fund Escrow</button>`;
+                } else if(chat.clientId === userState.uid && chat.escrowStatus === 'funded') {
+                    h.innerHTML += `<button onclick="window.release('${chat.escrowId}', '${id}')" class="bg-indigo-600 px-4 py-2 rounded-lg text-xs font-bold">Release Payment</button>`;
+                }
+            });
+
+            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'chats', id, 'messages'), orderBy('ts', 'asc')), (snap) => {
+                const cont = document.getElementById('message-container');
+                cont.innerHTML = '';
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.senderId === userState.uid;
+                    cont.innerHTML += `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                        <div class="${isMe ? 'bg-indigo-600' : 'bg-slate-800'} px-5 py-3 rounded-2xl text-sm max-w-[70%]">${m.text}</div>
+                    </div>`;
+                });
+                cont.scrollTop = cont.scrollHeight;
+            });
+        };
+
+        window.sendMsg = async () => {
+            const input = document.getElementById('msg-input');
+            if(!input.value) return;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'chats', activeChatId, 'messages'), { text: input.value, senderId: userState.uid, ts: serverTimestamp() });
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'chats', activeChatId), { lastMsg: input.value });
+            input.value = '';
+        };
+
+        window.fund = async (chatId) => {
+            const chatRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatId);
+            const chat = (await getDoc(chatRef)).data();
+            await runTransaction(db, async (tx) => {
+                tx.update(doc(db, 'artifacts', appId, 'users', userState.uid), { balance: userState.balance - chat.amount });
+                const escRef = doc(collection(db, 'artifacts', appId, 'escrows'));
+                tx.set(escRef, { jobTitle: chat.jobTitle, amount: chat.amount, clientId: chat.clientId, freelancerId: chat.freelancerId, status: 'funded' });
+                tx.update(chatRef, { escrowId: escRef.id, escrowStatus: 'funded' });
+            });
+            alert("Funds Secured in Escrow!");
+        };
+
+        window.release = async (escId, chatId) => {
+            const escRef = doc(db, 'artifacts', appId, 'escrows', escId);
+            const esc = (await getDoc(escRef)).data();
+            await runTransaction(db, async (tx) => {
+                const freeRef = doc(db, 'artifacts', appId, 'users', esc.freelancerId);
+                const freeSnap = await tx.get(freeRef);
+                tx.update(freeRef, { balance: freeSnap.data().balance + esc.amount });
+                tx.update(escRef, { status: 'paid' });
+                tx.update(doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatId), { escrowStatus: 'released' });
+            });
+            alert("Payment Released Successfully!");
+        };
+
+        window.switchTab = (id) => {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+        };
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.toggleUtility = () => document.getElementById('utility-drawer').classList.toggle('open');
+        window.adminDelete = async (id) => await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'jobs', id));
+    </script>
+</body>
+</html>
+
