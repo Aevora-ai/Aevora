@@ -13,17 +13,22 @@
         .job-card { background:#1e293b; border-radius:12px; padding:20px; margin:15px 0; border-left:4px solid #3b82f6; }
         .verified { border-left-color:#10b981 !important; }
         .badge { background:#3b82f6; padding:4px 8px; border-radius:20px; font-size:12px; }
-        button { background:#3b82f6; border:none; padding:10px 20px; border-radius:8px; color:white; cursor:pointer; margin:5px; }
+        button { background:#3b82f6; border:none; padding:10px 20px; border-radius:8px; color:white; cursor:pointer; margin:5px; transition: 0.2s; }
         button:hover { background:#2563eb; }
         button.danger { background:#ef4444; }
-        button.danger:hover { background:#dc2626; }
         button.success { background:#10b981; }
-        button.success:hover { background:#059669; }
-        button:disabled { opacity:0.5; cursor:not-allowed; }
+        
+        /* 🚨 THIS FIXES THE STUCK CHAT MODAL */
+        #chat-modal.hidden { display: none !important; }
+        #chat-modal { 
+            position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.85); z-index:9999; 
+            display:flex; align-items:center; justify-content:center;
+        }
+
         #admin-panel { background:#1e1b4b; border:2px solid #8b5cf6; border-radius:12px; padding:20px; margin:20px 0; display:none; }
         .hidden { display:none; }
         .escrow { background:#f59e0b; font-weight:bold; padding:4px 8px; border-radius:4px; font-size:12px; color: #000; }
-        .upi-badge { background:#00bcd4; font-size:11px; }
         .razorpay-badge { background:#00a651; padding:3px 8px; border-radius:4px; font-size:11px; }
     </style>
 </head>
@@ -32,29 +37,32 @@
         <header style="display:flex; justify-content:space-between; align-items:center; padding:20px 0;">
             <h1 style="font-size:2em;">🇮🇳 Aevora <span class="razorpay-badge">Razorpay Powered</span></h1>
             <div>
-                <input id="search" placeholder="🔍 Search jobs..." style="padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; width:300px;">
+                <input id="search" placeholder="🔍 Search jobs..." style="padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; width:250px;">
                 <button id="login-btn" onclick="login()">Google Login</button>
                 <button id="logout-btn" onclick="logout()" class="hidden">Logout</button>
-                <span id="user-info" class="hidden"></span>
+                <span id="user-info" class="hidden" style="margin-left:10px;"></span>
             </div>
         </header>
 
-        <div id="post-form" class="hidden" style="background:#1e293b; padding:20px; border-radius:12px; margin:20px 0;">
-            <h2>📤 Post Job (₹50 min)</h2>
-            <input id="job-title" placeholder="Job Title (max 100 chars)" maxlength="100" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #475569; background:#334155;">
-            <input id="job-price" type="number" min="50" placeholder="Price ₹" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #475569; background:#334155;">
-            <input id="job-desc" placeholder="Job description..." maxlength="500" style="width:100%; padding:12px; margin:10px 0; border-radius:8px; border:1px solid #475569; background:#334155;">
-            <button onclick="postJob()">🚀 Post Job</button>
+        <div id="post-form" class="hidden" style="background:#1e293b; padding:20px; border-radius:12px; margin:20px 0; border: 1px solid #334155;">
+            <h2 style="margin-bottom:10px;">📤 Post Job</h2>
+            <input id="job-title" placeholder="Job Title" style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
+            <input id="job-price" type="number" placeholder="Price ₹" style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
+            <input id="job-desc" placeholder="Brief description..." style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
+            <button onclick="postJob()" style="width:100%; margin-top:10px; background:#fff; color:#000; font-weight:bold;">🚀 Post Job</button>
         </div>
 
         <div id="job-feed"></div>
 
-        <div id="chat-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; display:flex; align-items:center; justify-content:center;">
-            <div style="background:#1e293b; width:90%; max-width:500px; height:70vh; border-radius:12px; padding:20px; position:relative;">
-                <button onclick="closeChat()" style="position:absolute; top:10px; right:20px; background:none; border:none; font-size:24px; color:#94a3b8;">×</button>
-                <h3 id="chat-title" style="margin-bottom:20px;"></h3>
-                <div id="chat-messages" style="height:70%; overflow-y:auto; margin-bottom:20px; background:#0f172a; padding:15px; border-radius:8px;"></div>
-                <input id="chat-input" placeholder="Type message... (Enter to send)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #475569; background:#334155;" onkeypress="if(event.key==='Enter') sendMessage()">
+        <div id="chat-modal" class="hidden">
+            <div style="background:#1e293b; width:90%; max-width:450px; height:80vh; border-radius:20px; padding:20px; position:relative; border: 1px solid #3b82f6;">
+                <button onclick="closeChat()" style="position:absolute; top:15px; right:15px; background:#ef4444; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">×</button>
+                <h3 id="chat-title" style="margin-bottom:15px; padding-right:40px;">Chat</h3>
+                <div id="chat-messages" style="height:70%; overflow-y:auto; margin-bottom:15px; background:#0f172a; padding:15px; border-radius:12px;"></div>
+                <div style="display:flex; gap:10px;">
+                    <input id="chat-input" placeholder="Type message..." style="flex:1; padding:12px; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;" onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()">Send</button>
+                </div>
             </div>
         </div>
 
@@ -62,16 +70,12 @@
             <h2>👑 Admin Dashboard</h2>
             <button onclick="generateInvite()">➕ Invite Admin</button>
             <div id="admin-stats"></div>
-            <div id="admin-jobs"></div>
-            <div id="admin-users"></div>
         </div>
     </div>
 
     <script>
-        // ================= RAZORPAY =================
-        const RAZORPAY_KEY = 'rzp_test_YOUR_KEY_HERE'; // 👈 PASTE YOUR KEY FROM RAZORPAY DASHBOARD HERE
+        const RAZORPAY_KEY = 'rzp_test_YOUR_KEY_HERE'; // PASTE KEY HERE
         
-        // ================= YOUR FIREBASE CREDENTIALS =================
         const firebaseConfig = {
             apiKey: "AIzaSyAHs-RDSsvAlw8QEllofvUsllCRqFkR_tM",
             authDomain: "aevora-2b110.firebaseapp.com",
@@ -80,7 +84,6 @@
             messagingSenderId: "600000297954",
             appId: "1:600000297954:web:51875db0546d4f3e6557bb"
         };
-        // =============================================================
 
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
@@ -104,47 +107,10 @@
                     email: user.email || "",
                     role: "user",
                     verified: false,
-                    banned: false,
-                    rating: 0,
-                    completedJobs: 0,
                     balance: 0,
-                    phone: "",
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
-        }
-
-        async function isAdmin() {
-            if (!currentUser) return false;
-            const doc = await db.collection("users").doc(currentUser.uid).get();
-            return doc.data()?.role === "admin" || doc.data()?.role === "superadmin";
-        }
-
-        async function generateInvite() {
-            if (!(await isAdmin())) return alert("❌ Admin only");
-            const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-            await db.collection("invites").doc(code).set({
-                role: "admin",
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                used: false
-            });
-            const link = `${window.location.origin}?invite=${code}`;
-            alert("✅ Copy this link and send it to your future admin: " + link);
-        }
-
-        async function checkInvite(user) {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get("invite");
-            if (!code) return;
-
-            const ref = db.collection("invites").doc(code);
-            const snap = await ref.get();
-            if (!snap.exists || snap.data().used) return;
-
-            await db.collection("users").doc(user.uid).update({ role: snap.data().role });
-            await ref.update({ used: true });
-            alert("👑 You're now Admin!");
-            window.history.replaceState({}, document.title, "/");
         }
 
         function renderJobs(jobs) {
@@ -159,27 +125,21 @@
                     const div = document.createElement('div');
                     div.className = `job-card ${job.sellerVerified ? 'verified' : ''}`;
                     div.innerHTML = `
-                        <h3>${sanitize(job.title)}</h3>
-                        <p>₹${job.price.toLocaleString()} 
-                            <span class="escrow ${job.status === 'escrow' ? '' : 'hidden'}">🔒 Funds in Escrow</span>
-                            <span class="badge upi-badge">UPI Ready</span>
-                            <span class="badge">⭐${job.sellerRating?.toFixed(1) || 0} (${job.completedJobs || 0} jobs)</span>
-                        </p>
-                        <p>${sanitize(job.desc?.slice(0, 100) || '')}${job.desc && job.desc.length > 100 ? '...' : ''}</p>
-                        <p>👤 ${sanitize(job.sellerName || 'Anonymous')} ${job.sellerVerified ? '✅ Verified' : ''}</p>
-                        <div style="margin-top:15px;">
-                            ${isOwner && job.status !== 'completed' ? 
-                                `<button class="success" onclick="completeJob('${job.id}')">✅ Released Funds</button>
-                                 <button class="danger" onclick="deleteJob('${job.id}')">🗑️ Delete</button>` :
-                                !isBuyer && job.status === 'open' ?
-                                `<button onclick="hire('${job.id}', ${job.price})" style="background:#00a651;">💰 Hire for ₹${job.price.toLocaleString()}</button>` :
+                        <div style="display:flex; justify-content:space-between;">
+                            <h3>${sanitize(job.title)}</h3>
+                            <strong style="color:#10b981; font-size:1.2em;">₹${job.price}</strong>
+                        </div>
+                        <p style="color:#94a3b8; margin:10px 0;">${sanitize(job.desc)}</p>
+                        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                            ${isOwner ? 
+                                `<button class="danger" onclick="deleteJob('${job.id}')">Delete</button>` :
+                                job.status === 'open' ?
+                                `<button onclick="hire('${job.id}', ${job.price})" style="background:#10b981;">Pay & Hire</button>` :
                                 job.status === 'escrow' && isBuyer ? 
-                                `<button class="success" onclick="completeJob('${job.id}')">✅ Confirm Delivery</button>` : ''
+                                `<button class="success" onclick="completeJob('${job.id}')">Confirm Delivery</button>` : ''
                             }
                             <button onclick="openChat('${job.sellerId}', '${sanitize(job.sellerName || 'Freelancer')}')">💬 Chat</button>
-                            ${isBuyer && job.status === 'escrow' ? 
-                                `<button class="danger" onclick="disputeJob('${job.id}')">⚠️ Dispute</button>` : ''
-                            }
+                            ${job.status === 'escrow' ? '<span class="escrow">🔒 Funds in Escrow</span>' : ''}
                         </div>
                     `;
                     feed.appendChild(div);
@@ -187,49 +147,28 @@
         }
 
         async function loadJobs() {
-            db.collection("jobs").orderBy("createdAt", "desc")
-                .onSnapshot(async snap => {
-                    cacheJobs = [];
-                    for (let doc of snap.docs) {
-                        const job = { id: doc.id, ...doc.data() };
-                        if (job.sellerId) {
-                            try {
-                                const sellerDoc = await db.collection("users").doc(job.sellerId).get();
-                                job.sellerName = sellerDoc.data()?.name;
-                                job.sellerVerified = sellerDoc.data()?.verified;
-                                job.sellerRating = sellerDoc.data()?.rating;
-                                job.completedJobs = sellerDoc.data()?.completedJobs || 0;
-                            } catch(e) {
-                                job.sellerName = "Freelancer";
-                            }
-                        }
-                        cacheJobs.push(job);
-                    }
-                    renderJobs(cacheJobs);
-                });
+            db.collection("jobs").orderBy("createdAt", "desc").onSnapshot(async snap => {
+                cacheJobs = [];
+                for (let doc of snap.docs) {
+                    const data = doc.data();
+                    const seller = await db.collection("users").doc(data.sellerId).get();
+                    cacheJobs.push({ id: doc.id, ...data, sellerName: seller.data()?.name, sellerVerified: seller.data()?.verified });
+                }
+                renderJobs(cacheJobs);
+            });
         }
 
         async function postJob() {
-            const title = document.getElementById("job-title").value.trim();
+            const title = document.getElementById("job-title").value;
             const price = parseInt(document.getElementById("job-price").value);
-            const desc = document.getElementById("job-desc").value.trim();
-
-            if (!title || price < 50) return alert("❌ Price must be at least ₹50");
-
-            try {
-                await db.collection("jobs").add({
-                    title, price, desc,
-                    sellerId: currentUser.uid,
-                    status: "open",
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                document.getElementById("job-title").value = "";
-                document.getElementById("job-price").value = "";
-                document.getElementById("job-desc").value = "";
-                alert("✅ Job is now live!");
-            } catch(e) {
-                alert("❌ Error: Check your Firestore rules.");
-            }
+            const desc = document.getElementById("job-desc").value;
+            if(!title || isNaN(price)) return alert("Fill all fields");
+            await db.collection("jobs").add({
+                title, price, desc, sellerId: currentUser.uid, status: "open", createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            document.getElementById("job-title").value = "";
+            document.getElementById("job-price").value = "";
+            document.getElementById("job-desc").value = "";
         }
 
         async function hire(jobId, amount) {
@@ -238,60 +177,55 @@
                 amount: amount * 100,
                 currency: 'INR',
                 name: 'Aevora Escrow',
-                description: `Payment Protection`,
-                handler: async function(response) {
+                handler: async function(res) {
                     await db.collection("jobs").doc(jobId).update({
-                        buyerId: currentUser.uid,
-                        status: "escrow",
-                        razorpayPaymentId: response.razorpay_payment_id
+                        buyerId: currentUser.uid, status: "escrow", paymentId: res.razorpay_payment_id
                     });
-                    alert("✅ Payment locked. Start the work!");
+                    alert("Payment successful! Funds locked in escrow.");
                 }
             };
             new Razorpay(options).open();
         }
 
         async function completeJob(jobId) {
-            if (!confirm("Confirm delivery? Funds (minus 10% fee) will be sent to the seller.")) return;
             const jobRef = db.collection("jobs").doc(jobId);
-            const jobSnap = await jobRef.get();
-            const jobData = jobSnap.data();
-
-            await db.collection("users").doc(jobData.sellerId).update({
-                completedJobs: firebase.firestore.FieldValue.increment(1),
-                balance: firebase.firestore.FieldValue.increment(Math.floor(jobData.price * 0.9))
+            const snap = await jobRef.get();
+            await db.collection("users").doc(snap.data().sellerId).update({
+                balance: firebase.firestore.FieldValue.increment(snap.data().price * 0.9)
             });
             await jobRef.update({ status: "completed" });
-            alert("✅ Transaction complete!");
+            alert("Funds released!");
         }
 
         function openChat(userId, userName) {
+            if(!currentUser) return alert("Please login to chat");
             document.getElementById("chat-modal").classList.remove("hidden");
-            document.getElementById("chat-title").textContent = `Chat with ${sanitize(userName)}`;
-            const chatId = [currentUser.uid, userId].sort().join("_");
-            window.chatId = chatId;
-            db.collection("chats").doc(chatId).collection("messages").orderBy("createdAt").onSnapshot(snap => {
+            document.getElementById("chat-title").textContent = "Chatting with " + userName;
+            window.chatId = [currentUser.uid, userId].sort().join("_");
+            
+            db.collection("chats").doc(window.chatId).collection("messages").orderBy("createdAt").onSnapshot(snap => {
                 const box = document.getElementById("chat-messages");
                 box.innerHTML = "";
                 snap.forEach(doc => {
-                    const msg = doc.data();
-                    const isMe = msg.sender === currentUser.uid;
-                    box.innerHTML += `<div style="background:${isMe ? '#3b82f6':'#475569'}; margin:8px 0; padding:10px; border-radius:8px; width:fit-content; max-width:80%; margin-left:${isMe ? 'auto':'0'}">${sanitize(msg.text)}</div>`;
+                    const m = doc.data();
+                    const isMe = m.sender === currentUser.uid;
+                    box.innerHTML += `<div style="background:${isMe?'#3b82f6':'#334155'}; margin:5px; padding:10px; border-radius:10px; text-align:${isMe?'right':'left'}">${sanitize(m.text)}</div>`;
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
+        function closeChat() { document.getElementById("chat-modal").classList.add("hidden"); }
+
         async function sendMessage() {
             const input = document.getElementById("chat-input");
-            if (!input.value.trim() || !window.chatId) return;
+            if(!input.value || !window.chatId) return;
             await db.collection("chats").doc(window.chatId).collection("messages").add({
                 text: input.value, sender: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             input.value = "";
         }
 
-        function closeChat() { document.getElementById("chat-modal").classList.add("hidden"); }
         function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
         function logout() { auth.signOut().then(() => location.reload()); }
 
@@ -301,12 +235,10 @@
                 document.getElementById("login-btn").classList.add("hidden");
                 document.getElementById("logout-btn").classList.remove("hidden");
                 document.getElementById("user-info").classList.remove("hidden");
-                document.getElementById("user-info").textContent = `👋 ${user.displayName}`;
+                document.getElementById("user-info").textContent = "👋 " + user.displayName;
                 document.getElementById("post-form").classList.remove("hidden");
                 await createUserIfNotExists(user);
-                await checkInvite(user);
                 loadJobs();
-                await loadAdminPanel();
             }
         });
         document.getElementById("search").addEventListener("input", () => renderJobs(cacheJobs));
