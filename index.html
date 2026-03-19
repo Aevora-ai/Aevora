@@ -1,247 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Aevora - Freelance Marketplace (India)</title>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#0f0f23; color:#fff; }
-        .container { max-width:1200px; margin:0 auto; padding:20px; }
-        .job-card { background:#1e293b; border-radius:12px; padding:20px; margin:15px 0; border-left:4px solid #3b82f6; }
-        .verified { border-left-color:#10b981 !important; }
-        .badge { background:#3b82f6; padding:4px 8px; border-radius:20px; font-size:12px; }
-        button { background:#3b82f6; border:none; padding:10px 20px; border-radius:8px; color:white; cursor:pointer; margin:5px; transition: 0.2s; }
-        button:hover { background:#2563eb; }
-        button.danger { background:#ef4444; }
-        button.success { background:#10b981; }
-        
-        /* 🚨 THIS FIXES THE STUCK CHAT MODAL */
-        #chat-modal.hidden { display: none !important; }
-        #chat-modal { 
-            position:fixed; top:0; left:0; width:100%; height:100%; 
-            background:rgba(0,0,0,0.85); z-index:9999; 
-            display:flex; align-items:center; justify-content:center;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aevora | Privacy Protection</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-        #admin-panel { background:#1e1b4b; border:2px solid #8b5cf6; border-radius:12px; padding:20px; margin:20px 0; display:none; }
-        .hidden { display:none; }
-        .escrow { background:#f59e0b; font-weight:bold; padding:4px 8px; border-radius:4px; font-size:12px; color: #000; }
-        .razorpay-badge { background:#00a651; padding:3px 8px; border-radius:4px; font-size:11px; }
+    <style>
+        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
     </style>
 </head>
-<body>
-    <div class="container">
-        <header style="display:flex; justify-content:space-between; align-items:center; padding:20px 0;">
-            <h1 style="font-size:2em;">🇮🇳 Aevora <span class="razorpay-badge">Razorpay Powered</span></h1>
-            <div>
-                <input id="search" placeholder="🔍 Search jobs..." style="padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; width:250px;">
-                <button id="login-btn" onclick="login()">Google Login</button>
-                <button id="logout-btn" onclick="logout()" class="hidden">Logout</button>
-                <span id="user-info" class="hidden" style="margin-left:10px;"></span>
-            </div>
-        </header>
+<body class="flex flex-col items-center">
 
-        <div id="post-form" class="hidden" style="background:#1e293b; padding:20px; border-radius:12px; margin:20px 0; border: 1px solid #334155;">
-            <h2 style="margin-bottom:10px;">📤 Post Job</h2>
-            <input id="job-title" placeholder="Job Title" style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
-            <input id="job-price" type="number" placeholder="Price ₹" style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
-            <input id="job-desc" placeholder="Brief description..." style="width:100%; padding:10px; margin:5px 0; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;">
-            <button onclick="postJob()" style="width:100%; margin-top:10px; background:#fff; color:#000; font-weight:bold;">🚀 Post Job</button>
-        </div>
+    <div class="container max-w-4xl px-6 py-20 text-center">
+        <div class="text-emerald-400 font-black tracking-[0.3em] mb-8 text-sm">AEVORA</div>
 
-        <div id="job-feed"></div>
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            Your Personal Data Is <span class="text-red-500">Public</span> Right Now
+        </h1>
+        <p class="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
+            Take back control. Remove your phone number & address from 100+ sites in under 1 hour.
+        </p>
 
-        <div id="chat-modal" class="hidden">
-            <div style="background:#1e293b; width:90%; max-width:450px; height:80vh; border-radius:20px; padding:20px; position:relative; border: 1px solid #3b82f6;">
-                <button onclick="closeChat()" style="position:absolute; top:15px; right:15px; background:#ef4444; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">×</button>
-                <h3 id="chat-title" style="margin-bottom:15px; padding-right:40px;">Chat</h3>
-                <div id="chat-messages" style="height:70%; overflow-y:auto; margin-bottom:15px; background:#0f172a; padding:15px; border-radius:12px;"></div>
-                <div style="display:flex; gap:10px;">
-                    <input id="chat-input" placeholder="Type message..." style="flex:1; padding:12px; border-radius:8px; background:#0f172a; color:white; border:1px solid #334155;" onkeypress="if(event.key==='Enter') sendMessage()">
-                    <button onclick="sendMessage()">Send</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="admin-panel">
-            <h2>👑 Admin Dashboard</h2>
-            <button onclick="generateInvite()">➕ Invite Admin</button>
-            <div id="admin-stats"></div>
+        <div class="max-w-md mx-auto space-y-4">
+            <input id="lead-email" type="email" placeholder="Enter your email" 
+                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-emerald-500 transition-all text-white text-center">
+            
+            <button id="cta-btn" onclick="saveLead()" class="w-full bg-emerald-500 text-black font-black py-4 rounded-2xl btn-glow transition-all active:scale-95">
+                Get Free Checklist
+            </button>
+            <p id="status-msg" class="text-xs text-slate-500 italic"></p>
         </div>
     </div>
 
-    <script>
-        const RAZORPAY_KEY = 'rzp_test_YOUR_KEY_HERE'; // PASTE KEY HERE
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl px-6 mb-20">
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Data Removal</h3>
+            <p class="text-slate-400 text-sm">Automated removal from 100+ broker sites and search engines.</p>
+        </div>
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Spam Reduction</h3>
+            <p class="text-slate-400 text-sm">Significant decrease in telemarketing calls and phishing emails.</p>
+        </div>
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Identity Shield</h3>
+            <p class="text-slate-400 text-sm">Continuous monitoring to ensure your data stays off the web.</p>
+        </div>
+    </div>
+
+    <div class="w-full bg-white/5 py-20 border-y border-white/5 text-center">
+        <h2 class="text-3xl font-bold mb-4">Want us to do it for you?</h2>
+        <p class="text-slate-400 mb-8">Aevora handles everything. Fast. Secure. Private.</p>
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyAHs-RDSsvAlw8QEllofvUsllCRqFkR_tM",
-            authDomain: "aevora-2b110.firebaseapp.com",
-            projectId: "aevora-2b110",
-            storageBucket: "aevora-2b110.firebasestorage.app",
-            messagingSenderId: "600000297954",
-            appId: "1:600000297954:web:51875db0546d4f3e6557bb"
-        };
+        <button onclick="window.location.href='https://rzp.io/l/YOUR-LINK'" 
+            class="bg-white text-black px-10 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-200 transition-all">
+            Full Cleanup – ₹999
+        </button>
+    </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    <script>
+    // 1. Firebase Configuration (Transferred from first code)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHs-RDSsvAlw8QEllofvUsllCRqFkR_tM",
+        authDomain: "aevora-2b110.firebaseapp.com",
+        projectId: "aevora-2b110",
+        storageBucket: "aevora-2b110.firebasestorage.app",
+        messagingSenderId: "600000297954",
+        appId: "1:600000297954:web:51875db0546d4f3e6557bb"
+    };
 
-        let cacheJobs = [], currentUser = null;
-        window.chatId = null;
+    // 2. Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-        function sanitize(input) {
-            const div = document.createElement('div');
-            div.textContent = input || "";
-            return div.textContent;
+    // 3. Logic to save Email Leads
+    async function saveLead() {
+        const emailInput = document.getElementById('lead-email');
+        const btn = document.getElementById('cta-btn');
+        const status = document.getElementById('status-msg');
+        
+        const email = emailInput.value.trim();
+
+        if (!email || !email.includes('@')) {
+            alert("Please enter a valid email address.");
+            return;
         }
 
-        async function createUserIfNotExists(user) {
-            const ref = db.collection("users").doc(user.uid);
-            const snap = await ref.get();
-            if (!snap.exists) {
-                await ref.set({
-                    name: user.displayName || "User",
-                    email: user.email || "",
-                    role: "user",
-                    verified: false,
-                    balance: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-        }
+        btn.disabled = true;
+        btn.innerText = "Syncing...";
 
-        function renderJobs(jobs) {
-            const feed = document.getElementById("job-feed");
-            feed.innerHTML = "";
-            const val = document.getElementById("search").value.toLowerCase();
-
-            jobs.filter(j => j.title.toLowerCase().includes(val))
-                .forEach(job => {
-                    const isOwner = job.sellerId === currentUser?.uid;
-                    const isBuyer = job.buyerId === currentUser?.uid;
-                    const div = document.createElement('div');
-                    div.className = `job-card ${job.sellerVerified ? 'verified' : ''}`;
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between;">
-                            <h3>${sanitize(job.title)}</h3>
-                            <strong style="color:#10b981; font-size:1.2em;">₹${job.price}</strong>
-                        </div>
-                        <p style="color:#94a3b8; margin:10px 0;">${sanitize(job.desc)}</p>
-                        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                            ${isOwner ? 
-                                `<button class="danger" onclick="deleteJob('${job.id}')">Delete</button>` :
-                                job.status === 'open' ?
-                                `<button onclick="hire('${job.id}', ${job.price})" style="background:#10b981;">Pay & Hire</button>` :
-                                job.status === 'escrow' && isBuyer ? 
-                                `<button class="success" onclick="completeJob('${job.id}')">Confirm Delivery</button>` : ''
-                            }
-                            <button onclick="openChat('${job.sellerId}', '${sanitize(job.sellerName || 'Freelancer')}')">💬 Chat</button>
-                            ${job.status === 'escrow' ? '<span class="escrow">🔒 Funds in Escrow</span>' : ''}
-                        </div>
-                    `;
-                    feed.appendChild(div);
-                });
-        }
-
-        async function loadJobs() {
-            db.collection("jobs").orderBy("createdAt", "desc").onSnapshot(async snap => {
-                cacheJobs = [];
-                for (let doc of snap.docs) {
-                    const data = doc.data();
-                    const seller = await db.collection("users").doc(data.sellerId).get();
-                    cacheJobs.push({ id: doc.id, ...data, sellerName: seller.data()?.name, sellerVerified: seller.data()?.verified });
-                }
-                renderJobs(cacheJobs);
+        try {
+            // Save to a collection named "leads"
+            await db.collection("leads").add({
+                email: email,
+                source: "privacy_landing",
+                status: "checklist_requested",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+
+            status.innerText = "Checklist sent! Check your inbox.";
+            status.classList.add('text-emerald-400');
+            emailInput.value = "";
+            btn.innerText = "Success";
+        } catch (error) {
+            console.error("Error saving lead: ", error);
+            status.innerText = "Error connecting to server. Try again.";
+            btn.disabled = false;
+            btn.innerText = "Get Free Checklist";
         }
-
-        async function postJob() {
-            const title = document.getElementById("job-title").value;
-            const price = parseInt(document.getElementById("job-price").value);
-            const desc = document.getElementById("job-desc").value;
-            if(!title || isNaN(price)) return alert("Fill all fields");
-            await db.collection("jobs").add({
-                title, price, desc, sellerId: currentUser.uid, status: "open", createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            document.getElementById("job-title").value = "";
-            document.getElementById("job-price").value = "";
-            document.getElementById("job-desc").value = "";
-        }
-
-        async function hire(jobId, amount) {
-            const options = {
-                key: RAZORPAY_KEY,
-                amount: amount * 100,
-                currency: 'INR',
-                name: 'Aevora Escrow',
-                handler: async function(res) {
-                    await db.collection("jobs").doc(jobId).update({
-                        buyerId: currentUser.uid, status: "escrow", paymentId: res.razorpay_payment_id
-                    });
-                    alert("Payment successful! Funds locked in escrow.");
-                }
-            };
-            new Razorpay(options).open();
-        }
-
-        async function completeJob(jobId) {
-            const jobRef = db.collection("jobs").doc(jobId);
-            const snap = await jobRef.get();
-            await db.collection("users").doc(snap.data().sellerId).update({
-                balance: firebase.firestore.FieldValue.increment(snap.data().price * 0.9)
-            });
-            await jobRef.update({ status: "completed" });
-            alert("Funds released!");
-        }
-
-        function openChat(userId, userName) {
-            if(!currentUser) return alert("Please login to chat");
-            document.getElementById("chat-modal").classList.remove("hidden");
-            document.getElementById("chat-title").textContent = "Chatting with " + userName;
-            window.chatId = [currentUser.uid, userId].sort().join("_");
-            
-            db.collection("chats").doc(window.chatId).collection("messages").orderBy("createdAt").onSnapshot(snap => {
-                const box = document.getElementById("chat-messages");
-                box.innerHTML = "";
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isMe = m.sender === currentUser.uid;
-                    box.innerHTML += `<div style="background:${isMe?'#3b82f6':'#334155'}; margin:5px; padding:10px; border-radius:10px; text-align:${isMe?'right':'left'}">${sanitize(m.text)}</div>`;
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-        }
-
-        function closeChat() { document.getElementById("chat-modal").classList.add("hidden"); }
-
-        async function sendMessage() {
-            const input = document.getElementById("chat-input");
-            if(!input.value || !window.chatId) return;
-            await db.collection("chats").doc(window.chatId).collection("messages").add({
-                text: input.value, sender: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            input.value = "";
-        }
-
-        function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-        function logout() { auth.signOut().then(() => location.reload()); }
-
-        auth.onAuthStateChanged(async user => {
-            currentUser = user;
-            if (user) {
-                document.getElementById("login-btn").classList.add("hidden");
-                document.getElementById("logout-btn").classList.remove("hidden");
-                document.getElementById("user-info").classList.remove("hidden");
-                document.getElementById("user-info").textContent = "👋 " + user.displayName;
-                document.getElementById("post-form").classList.remove("hidden");
-                await createUserIfNotExists(user);
-                loadJobs();
-            }
-        });
-        document.getElementById("search").addEventListener("input", () => renderJobs(cacheJobs));
+    }
     </script>
 </body>
 </html>
