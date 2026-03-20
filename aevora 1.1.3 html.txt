@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aevora | Privacy Protection</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <style>
+        body { background: #020617; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+    </style>
+</head>
+<body class="flex flex-col items-center">
+
+    <div class="container max-w-4xl px-6 py-20 text-center">
+        <div class="text-emerald-400 font-black tracking-[0.3em] mb-8 text-sm">AEVORA</div>
+
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight">
+            Your Personal Data Is <span class="text-red-500">Public</span> Right Now
+        </h1>
+        <p class="text-slate-400 text-lg mb-10 max-w-xl mx-auto">
+            Take back control. Remove your phone number & address from 100+ sites in under 1 hour.
+        </p>
+
+        <div class="max-w-md mx-auto space-y-4">
+            <input id="lead-email" type="email" placeholder="Enter your email" 
+                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl outline-none focus:border-emerald-500 transition-all text-white text-center">
+            
+            <button id="cta-btn" onclick="saveLead()" class="w-full bg-emerald-500 text-black font-black py-4 rounded-2xl btn-glow transition-all active:scale-95">
+                Get Free Checklist
+            </button>
+            <p id="status-msg" class="text-xs text-slate-500 italic"></p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl px-6 mb-20">
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Data Removal</h3>
+            <p class="text-slate-400 text-sm">Automated removal from 100+ broker sites and search engines.</p>
+        </div>
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Spam Reduction</h3>
+            <p class="text-slate-400 text-sm">Significant decrease in telemarketing calls and phishing emails.</p>
+        </div>
+        <div class="glass p-8 rounded-[2rem] text-left">
+            <div class="text-emerald-400 mb-4 text-2xl">✔</div>
+            <h3 class="font-bold mb-2 text-lg">Identity Shield</h3>
+            <p class="text-slate-400 text-sm">Continuous monitoring to ensure your data stays off the web.</p>
+        </div>
+    </div>
+
+    <div class="w-full bg-white/5 py-20 border-y border-white/5 text-center">
+        <h2 class="text-3xl font-bold mb-4">Want us to do it for you?</h2>
+        <p class="text-slate-400 mb-8">Aevora handles everything. Fast. Secure. Private.</p>
+        
+        <button onclick="window.location.href='https://rzp.io/l/YOUR-LINK'" 
+            class="bg-white text-black px-10 py-4 rounded-2xl font-black shadow-xl hover:bg-slate-200 transition-all">
+            Full Cleanup – ₹999
+        </button>
+    </div>
+
+    <script>
+    // 1. Firebase Configuration (Transferred from first code)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAHs-RDSsvAlw8QEllofvUsllCRqFkR_tM",
+        authDomain: "aevora-2b110.firebaseapp.com",
+        projectId: "aevora-2b110",
+        storageBucket: "aevora-2b110.firebasestorage.app",
+        messagingSenderId: "600000297954",
+        appId: "1:600000297954:web:51875db0546d4f3e6557bb"
+    };
+
+    // 2. Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 3. Logic to save Email Leads
+    async function saveLead() {
+        const emailInput = document.getElementById('lead-email');
+        const btn = document.getElementById('cta-btn');
+        const status = document.getElementById('status-msg');
+        
+        const email = emailInput.value.trim();
+
+        if (!email || !email.includes('@')) {
+            alert("Please enter a valid email address.");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Syncing...";
+
+        try {
+            // Save to a collection named "leads"
+            await db.collection("leads").add({
+                email: email,
+                source: "privacy_landing",
+                status: "checklist_requested",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            status.innerText = "Checklist sent! Check your inbox.";
+            status.classList.add('text-emerald-400');
+            emailInput.value = "";
+            btn.innerText = "Success";
+        } catch (error) {
+            console.error("Error saving lead: ", error);
+            status.innerText = "Error connecting to server. Try again.";
+            btn.disabled = false;
+            btn.innerText = "Get Free Checklist";
+        }
+    }
+    </script>
+</body>
+</html>
